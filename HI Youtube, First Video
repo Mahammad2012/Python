@@ -1,0 +1,78 @@
+import pygame
+import random
+import math
+
+# FIREWORK PARTICLE CLASS
+class FireworkParticle:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.radius = random.randint(2, 5)
+        self.speed = random.uniform(1, 15)
+        self.angle = random.uniform(180, 190 * math.pi)
+        self.color = color
+        self.life = 60
+
+    def update(self):
+        self.x += self.speed * math.cos(self.angle)
+        self.y += self.speed * math.sin(self.angle)
+        self.life -= 1
+
+    def draw(self, screen):
+        if self.life > 0:
+            pygame.draw.circle(screen, self.color, (int(self.x), int(self.y)), self.radius)
+
+# LAUNCH FROM EDGES FUNCTION
+def launch_firework(width, height):
+    edge = random.choice(['top', 'bottom', 'left', 'right'])
+    if edge == 'top':
+        x, y = random.randint(0, width), 0
+    elif edge == 'bottom':
+        x, y = random.randint(0, width), height
+    elif edge == 'left':
+        x, y = 0, random.randint(0, height)
+    else:  # right
+        x, y = width, random.randint(0, height)
+
+    pastel_colors = [(255, 200, 255), (200, 255, 255), (255, 255, 200), (220, 220, 255)]
+    particles = [FireworkParticle(x, y, random.choice(pastel_colors)) for _ in range(20)]
+    return particles
+
+# MAIN PYGAME LOOP
+pygame.init()
+width, height = 1100, 720
+screen = pygame.display.set_mode((width, height))
+clock = pygame.time.Clock()
+
+# Font
+font = pygame.font.SysFont('Norwest', 100, bold=True)
+text = font.render("Hi YouTube!, First Video!", True, (255, 255, 255))
+text_rect = text.get_rect(center=(width // 2, height // 2))
+
+# Main Loop
+particles = []
+frame = 0
+running = True
+while running:
+    screen.fill((0, 0, 0))
+
+    screen.blit(text, text_rect)
+
+    if frame % 20 == 0:
+        particles += launch_firework(width, height)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    for p in particles:
+        p.update()
+        p.draw(screen)
+
+    particles = [p for p in particles if p.life > 0]
+
+    pygame.display.flip()
+    clock.tick(60)
+    frame += 1
+
+pygame.quit()
